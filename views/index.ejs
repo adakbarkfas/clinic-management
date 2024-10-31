@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clinic Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Clinic Management System</h1>
+        
+        <!-- Patient Registration Form -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Patient Registration</h2>
+                <form id="patientForm" class="space-y-4">
+                    <div>
+                        <label class="block mb-1">Civil ID</label>
+                        <input type="text" name="civil_id" required 
+                               class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block mb-1">First Name</label>
+                        <input type="text" name="first_name" required 
+                               class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block mb-1">Last Name</label>
+                        <input type="text" name="last_name" required 
+                               class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block mb-1">Phone Number</label>
+                        <input type="tel" name="phone_number" required 
+                               class="w-full p-2 border rounded">
+                    </div>
+                    <button type="submit" 
+                            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Register Patient
+                    </button>
+                </form>
+            </div>
+
+            <!-- Patient List -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Recent Patients</h2>
+                <div id="patientsList" class="space-y-4">
+                    <!-- Will be populated via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle form submission
+        document.getElementById('patientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                await axios.post('/api/patients', data);
+                e.target.reset();
+                loadPatients();
+                alert('Patient registered successfully!');
+            } catch (err) {
+                alert('Error registering patient: ' + err.message);
+            }
+        });
+
+        // Load patients list
+        async function loadPatients() {
+            try {
+                const response = await axios.get('/api/patients');
+                const patientsList = document.getElementById('patientsList');
+                patientsList.innerHTML = response.data.map(patient => `
+                    <div class="border-b pb-2">
+                        <p class="font-semibold">${patient.first_name} ${patient.last_name}</p>
+                        <p class="text-sm text-gray-600">Civil ID: ${patient.civil_id}</p>
+                        <p class="text-sm text-gray-600">Phone: ${patient.phone_number}</p>
+                        <p class="text-sm text-gray-600">First Visit: ${new Date(patient.first_visit_date).toLocaleDateString()}</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading patients:', err);
+            }
+        }
+
+        // Load patients on page load
+        loadPatients();
+    </script>
+</body>
+</html>
